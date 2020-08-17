@@ -70,7 +70,8 @@ def main():
         BotCli().start()
     finally:
         os.unlink('extensions')
-        os.unlink('./administration.yml')
+        if os.path.exists('./administration.yml'):
+            os.unlink('./administration.yml')
 
 if __name__ == '__main__':
     main()
