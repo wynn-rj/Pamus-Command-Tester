@@ -4,6 +4,7 @@ class PseudoMessage():
         self.channel = _fake_channel()
         self.author = _fake_author()
         self.content = cmd
+        self._state = None
 
 class _fake_guild():
     def __init__(self):

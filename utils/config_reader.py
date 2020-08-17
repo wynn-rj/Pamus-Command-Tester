@@ -5,8 +5,12 @@ import types
 import yaml
 
 class YAMLConfigReader:
+    default_file = '/config/config.yml'
     _lock = threading.Lock()
-    def __init__(self, file='/config/config.yml', defaults=None):
+    def __init__(self, file=None, defaults=None):
+        if file == '/config/administration.yml':
+            file = './administration.yml'
+        file = file or YAMLConfigReader.default_file
         self._config_file = file
         if not os.path.exists(file):
             with open(file, 'a'):

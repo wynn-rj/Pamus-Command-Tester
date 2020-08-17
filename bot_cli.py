@@ -1,6 +1,7 @@
 import sys
 import os
 import argparse
+import readline
 
 from utils.config_reader import YAMLConfigReader
 from pseudo_message import PseudoMessage
@@ -12,16 +13,25 @@ class BotCli():
     def __init__(self):
         self.bot = PseudoBot()
         self.loader = ExtensionLoader(self.bot)
+        self.command = ''
 
     def send_message(self, cmd):
         self.bot.run_command(PseudoMessage(cmd))
 
+    def get_command(self):
+        try:
+            self.command = input('> ')
+            return self.command
+        except (KeyboardInterrupt, EOFError):
+            print('')
+            return 'exit'
+
     def run(self):
-        last_command = None
-        while last_command != 'exit':
-            last_command = input('> ')
+        for cmd in self.bot.walk_commands():
+            print(cmd)
+        while self.get_command() != 'exit':
             try:
-                self.send_message(last_command)
+                self.send_message(self.command)
             except CommandError as ex:
                 print(ex)
 
@@ -38,12 +48,12 @@ class BotCli():
             result_msg += f'\n - {extension}: {result}'
         print(result_msg)
 
-    def start(self, config_file):
+    def start(self):
         config = YAMLConfigReader(defaults={
             'prefix': '!',
             'playing': None,
             'extensions': []
-        }, file=config_file)
+        })
         self.setup(config)
         self.run()
 
@@ -54,5 +64,13 @@ def parse_args():
 
 def main():
     args = parse_args()
-    sys.path.append(args.botdir)
-    BotCli().start(os.path.join(args.botdir, 'config.yml'))
+    try:
+        os.symlink(args.botdir, 'extensions')
+        YAMLConfigReader.default_file = os.path.join(args.botdir, 'config.yml')
+        BotCli().start()
+    finally:
+        os.unlink('extensions')
+        os.unlink('./administration.yml')
+
+if __name__ == '__main__':
+    main()
